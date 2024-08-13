@@ -1,15 +1,21 @@
-from typing import Union
-
-from fastapi import FastAPI
+from typing import List
+from pydantic import BaseModel
+from fastapi import FastAPI, HTTPException
 
 app = FastAPI()
 
+class User(BaseModel):
+    name: str
+    email: str
+    age: int
 
-@app.get("/")
-def read_root():
-    return {"Hello": "World"}
+class UserResponse(BaseModel):
+    name: str
+    email: str
 
-
-@app.get("/items/{item_id}")
-def read_item(item_id: int, q: Union[str, None] = None):
-    return {"item_id": item_id, "q": q}
+@app.post("/users/", response_model=UserResponse)
+async def create_user(user: User):
+    # You can perform any custom processing here
+    if user.age < 18:
+        raise HTTPException(status_code=400, detail="Age must be at least 18")
+    return user
