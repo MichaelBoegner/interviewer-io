@@ -13,7 +13,16 @@ class UserResponse(BaseModel):
     name: str
     email: str
 
-@app.post("/users/", response_model=UserResponse)
+@app.get("/user")
+async def get_hello():
+    user = {
+        "name": "Mike",
+        "email": "cmikeb",
+        "age": "42"
+    }
+    return user
+
+@app.post("/users/create", response_model=UserResponse)
 async def create_user(user: User):
     # You can perform any custom processing here
     if user.age < 18:
