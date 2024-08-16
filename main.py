@@ -1,30 +1,49 @@
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel, EmailStr
-from typing import Optional
+from bcrypt import hashpw, gensalt
+import jwt
+import datetime
+import os
 
 app = FastAPI()
 
-class User(BaseModel):
-    name: str
+class UserCreate(BaseModel):
+    username: str
+    password: str
     email: EmailStr
-    age: Optional[int]
 
 class UserResponse(BaseModel):
-    name: str
-    email: EmailStr
+    username: str
+    token: str
 
 @app.post("/users/create", response_model=UserResponse)
-async def create_user(user: User):
-    # Custom validation logic
-    if not user.name:
-        raise HTTPException(status_code=400, detail="Name must be provided.")
-    if not user.email:
-        raise HTTPException(status_code=400, detail="Email must be provided.")
+async def create_user(user: UserCreate):
+    # Validate input
+    if not user.username or not user.password:
+        raise HTTPException(status_code=400, detail="Username and password required")
     
-    # Process and return response data
+    # Hash password
+    hashed_password = hashpw(user.password.encode('utf-8'), gensalt())
+    
+    # Store user information (pseudo-code for database operation)
+    # try:
+    #     # database connection
+    #     # db.execute("INSERT INTO users (username, password_hash, email) VALUES (?, ?, ?)", 
+    #     #            (user.username, hashed_password, user.email))
+    # except Exception as e:
+    #     raise HTTPException(status_code=500, detail="Internal server error")
+
+    # Generate token
+    SECRET_KEY = os.getenv('SECRET_KEY')
+    token = jwt.encode({
+        'sub': user.username,
+        'exp': datetime.datetime.now(datetime.UTC) + datetime.timedelta(days=30)
+    }, 'SECRET_KEY', algorithm='HS256')
+
     user_response = {
-        "name": user.name,
-        "email": user.email
+        "username": user.username,
+        "token": token 
+
     }
-    
+
     return user_response
