@@ -58,5 +58,4 @@ async def create_user(user: UserCreate, db=Depends(get_db)):
         return UserResponse(username=user.username, token=token)
 
     except Exception as e:
-        print("This is the exception \n", e)
         raise HTTPException(status_code=500, detail=str(e))
